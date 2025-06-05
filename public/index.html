@@ -1,1 +1,378 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="C4 App - Gestão financeira e vendas para microempreendedoras">
+    <meta name="theme-color" content="#ec4899">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>C4 App - Gestão Financeira</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="assets/css/01-variables.css">
+    <link rel="stylesheet" href="assets/css/02-reset.css">
+    <link rel="stylesheet" href="assets/css/03-base.css">
+    <link rel="stylesheet" href="assets/css/04-components.css">
+    <link rel="stylesheet" href="assets/css/05-layout.css">
+    <link rel="stylesheet" href="assets/css/06-responsive.css">
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <div class="logo-container">
+                <div class="logo">C4</div>
+                <div class="crown">👑</div>
+            </div>
+            <div class="loading-spinner"></div>
+            <p class="loading-text">Carregando...</p>
+        </div>
+    </div>
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="screen" style="display: none;">
+        <div class="login-container">
+            <div class="login-header">
+                <div class="logo-container">
+                    <h1 class="logo">C4</h1>
+                    <div class="crown">👑</div>
+                </div>
+                <p class="tagline">Gestão financeira inteligente</p>
+            </div>
+            
+            <form id="login-form" class="login-form">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required placeholder="seu@email.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" name="password" required placeholder="Sua senha">
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-full">Entrar</button>
+                
+                <div class="login-footer">
+                    <p>Não tem conta? <a href="#" id="register-link">Cadastre-se</a></p>
+                    <p><a href="#" id="demo-link">Usar dados demo</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="main-app" class="app" style="display: none;">
+        <!-- Header -->
+        <header class="app-header" role="banner">
+            <div class="header-content">
+                <div class="logo-container">
+                    <h1 class="app-title">C4</h1>
+                    <div class="crown">👑</div>
+                </div>
+                <div class="user-greeting">
+                    <span id="user-name">Olá, Jessica</span>
+                    <button class="btn-icon" id="user-menu" aria-label="Menu do usuário">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                            <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="app-main" role="main" id="main-content">
+            <!-- Dashboard Page -->
+            <section id="dashboard-page" class="page active" aria-labelledby="dashboard-title">
+                <div class="page-header">
+                    <h2 id="dashboard-title">Dashboard</h2>
+                </div>
+                
+                <div class="grid-container" role="region" aria-label="Métricas principais">
+                    <!-- Monthly Sales Card -->
+                    <article class="card metric-card" role="article">
+                        <div class="card-header">
+                            <h3>Vendas do Mês</h3>
+                            <div class="card-icon">💰</div>
+                        </div>
+                        <div class="card-content">
+                            <p class="metric-value" aria-live="polite" id="monthly-sales">R$ 0,00</p>
+                            <p class="metric-change positive" id="monthly-change">+0% vs mês anterior</p>
+                        </div>
+                    </article>
+
+                    <!-- Profit Margin Card -->
+                    <article class="card metric-card" role="article">
+                        <div class="card-header">
+                            <h3>Margem de Lucro</h3>
+                            <div class="card-icon">📊</div>
+                        </div>
+                        <div class="card-content">
+                            <div class="progress-circle" data-progress="0">
+                                <span class="progress-value" id="profit-margin">0%</span>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Top Products Card -->
+                    <article class="card list-card" role="article">
+                        <div class="card-header">
+                            <h3>Produtos Top</h3>
+                            <div class="card-icon">🏆</div>
+                        </div>
+                        <div class="card-content">
+                            <ul class="product-list" id="top-products">
+                                <li class="empty-state">Nenhum produto cadastrado</li>
+                            </ul>
+                        </div>
+                    </article>
+
+                    <!-- Recent Sales Card -->
+                    <article class="card list-card" role="article">
+                        <div class="card-header">
+                            <h3>Vendas Recentes</h3>
+                            <div class="card-icon">🛍️</div>
+                        </div>
+                        <div class="card-content">
+                            <ul class="sales-list" id="recent-sales">
+                                <li class="empty-state">Nenhuma venda registrada</li>
+                            </ul>
+                        </div>
+                    </article>
+
+                    <!-- Goals Progress Card -->
+                    <article class="card progress-card" role="article">
+                        <div class="card-header">
+                            <h3>Meta do Mês</h3>
+                            <div class="card-icon">🎯</div>
+                        </div>
+                        <div class="card-content">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 0%" id="goal-progress-bar"></div>
+                            </div>
+                            <p class="progress-text" id="goal-text">R$ 0 de R$ 5.000</p>
+                            <p class="progress-percentage" id="goal-percentage">0% concluído</p>
+                        </div>
+                    </article>
+
+                    <!-- Quick Actions Card -->
+                    <article class="card actions-card" role="article">
+                        <div class="card-header">
+                            <h3>Ações Rápidas</h3>
+                            <div class="card-icon">⚡</div>
+                        </div>
+                        <div class="card-content">
+                            <div class="quick-actions">
+                                <button class="quick-action-btn" data-action="new-sale">
+                                    <span class="action-icon">🛒</span>
+                                    <span class="action-text">Nova Venda</span>
+                                </button>
+                                <button class="quick-action-btn" data-action="new-product">
+                                    <span class="action-icon">📦</span>
+                                    <span class="action-text">Novo Produto</span>
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <!-- Products Page -->
+            <section id="products-page" class="page" aria-labelledby="products-title" style="display: none;">
+                <div class="page-header">
+                    <h2 id="products-title">Produtos</h2>
+                    <button class="btn btn-primary" id="add-product-btn">Adicionar Produto</button>
+                </div>
+                
+                <div class="search-section">
+                    <input type="search" id="product-search" placeholder="Buscar produtos..." class="search-input">
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" data-category="all">Todos</button>
+                        <button class="filter-btn" data-category="roupas">Roupas</button>
+                        <button class="filter-btn" data-category="acessorios">Acessórios</button>
+                        <button class="filter-btn" data-category="calcados">Calçados</button>
+                    </div>
+                </div>
+                
+                <div class="grid-container" id="products-grid">
+                    <div class="empty-state-card">
+                        <div class="empty-icon">📦</div>
+                        <h3>Nenhum produto cadastrado</h3>
+                        <p>Adicione seu primeiro produto para começar</p>
+                        <button class="btn btn-primary" onclick="document.getElementById('add-product-btn').click()">
+                            Adicionar Produto
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sales Page -->
+            <section id="sales-page" class="page" aria-labelledby="sales-title" style="display: none;">
+                <div class="page-header">
+                    <h2 id="sales-title">Vendas</h2>
+                    <button class="btn btn-primary" id="add-sale-btn">Nova Venda</button>
+                </div>
+                
+                <div class="sales-summary">
+                    <div class="summary-card">
+                        <h3>Hoje</h3>
+                        <p class="summary-value" id="today-sales">R$ 0,00</p>
+                    </div>
+                    <div class="summary-card">
+                        <h3>Esta Semana</h3>
+                        <p class="summary-value" id="week-sales">R$ 0,00</p>
+                    </div>
+                    <div class="summary-card">
+                        <h3>Este Mês</h3>
+                        <p class="summary-value" id="month-sales">R$ 0,00</p>
+                    </div>
+                </div>
+                
+                <div class="sales-list-container">
+                    <ul class="sales-list" id="all-sales">
+                        <li class="empty-state">Nenhuma venda registrada</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Reports Page -->
+            <section id="reports-page" class="page" aria-labelledby="reports-title" style="display: none;">
+                <div class="page-header">
+                    <h2 id="reports-title">Relatórios</h2>
+                </div>
+                
+                <div class="reports-filters">
+                    <select id="period-filter" class="filter-select">
+                        <option value="week">Esta Semana</option>
+                        <option value="month" selected>Este Mês</option>
+                        <option value="quarter">Este Trimestre</option>
+                    </select>
+                </div>
+                
+                <div class="grid-container">
+                    <div class="card chart-card">
+                        <div class="card-header">
+                            <h3>Vendas por Período</h3>
+                        </div>
+                        <div class="card-content">
+                            <canvas id="sales-chart" width="300" height="200"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="card chart-card">
+                        <div class="card-header">
+                            <h3>Produtos Mais Vendidos</h3>
+                        </div>
+                        <div class="card-content">
+                            <canvas id="products-chart" width="300" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Profile Page -->
+            <section id="profile-page" class="page" aria-labelledby="profile-title" style="display: none;">
+                <div class="page-header">
+                    <h2 id="profile-title">Perfil</h2>
+                </div>
+                
+                <div class="profile-content">
+                    <div class="profile-info">
+                        <div class="profile-avatar">J</div>
+                        <h3 id="profile-name">Jessica Silva</h3>
+                        <p id="profile-email">jessica@email.com</p>
+                    </div>
+                    
+                    <div class="profile-actions">
+                        <button class="profile-btn" id="export-data-btn">
+                            <span class="btn-icon">📊</span>
+                            Exportar Dados
+                        </button>
+                        <button class="profile-btn" id="backup-btn">
+                            <span class="btn-icon">💾</span>
+                            Fazer Backup
+                        </button>
+                        <button class="profile-btn" id="load-demo-btn">
+                            <span class="btn-icon">🎮</span>
+                            Carregar Dados Demo
+                        </button>
+                        <button class="profile-btn" id="logout-btn">
+                            <span class="btn-icon">🚪</span>
+                            Sair
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav" role="navigation" aria-label="Menu principal">
+            <button class="nav-item active" data-page="dashboard" aria-current="page">
+                <div class="nav-icon">🏠</div>
+                <span class="nav-label">Dashboard</span>
+            </button>
+            <button class="nav-item" data-page="products">
+                <div class="nav-icon">📦</div>
+                <span class="nav-label">Produtos</span>
+            </button>
+            <button class="nav-item" data-page="sales">
+                <div class="nav-icon">🛍️</div>
+                <span class="nav-label">Vendas</span>
+            </button>
+            <button class="nav-item" data-page="reports">
+                <div class="nav-icon">📊</div>
+                <span class="nav-label">Relatórios</span>
+            </button>
+            <button class="nav-item" data-page="profile">
+                <div class="nav-icon">👤</div>
+                <span class="nav-label">Perfil</span>
+            </button>
+        </nav>
+
+        <!-- Floating Action Button -->
+        <button class="fab" id="fab-new-sale" aria-label="Nova venda rápida">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" aria-live="assertive" aria-atomic="true"></div>
+
+    <!-- Modal Container -->
+    <div id="modal-container"></div>
+
+    <!-- JavaScript Files -->
+    <script src="assets/js/core/config.js"></script>
+    <script src="assets/js/core/utils.js"></script>
+    <script src="assets/js/core/storage.js"></script>
+    <script src="assets/js/core/database.js"></script>
+    <script src="assets/js/core/auth.js"></script>
+    
+    <script src="assets/js/components/toast.js"></script>
+    <script src="assets/js/components/modal.js"></script>
+    <script src="assets/js/components/form-validator.js"></script>
+    <script src="assets/js/components/chart.js"></script>
+    
+    <script src="assets/js/modules/dashboard.js"></script>
+    <script src="assets/js/modules/products.js"></script>
+    <script src="assets/js/modules/sales.js"></script>
+    <script src="assets/js/modules/reports.js"></script>
+    <script src="assets/js/modules/profile.js"></script>
+    
+    <script src="assets/js/core/app.js"></script>
+</body>
+</html>
+
 
